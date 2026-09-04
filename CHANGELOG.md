@@ -7,6 +7,7 @@ This changelog follows the same style that I have seen LiveView, Phoenix, and El
 ### Enhancements
 
 - Add `user_data_pre_script` for setup that must run before FlameEC2 initialization.
+- Create per-app log and private release-runtime directories on runner instances.
 
 ## 1.0.0
 

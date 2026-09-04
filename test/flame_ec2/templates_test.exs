@@ -155,4 +155,27 @@ defmodule FlameEC2.TemplatesTest do
     # Verify no pre-script placeholder text appears
     refute String.contains?(output, "User-provided pre-script")
   end
+
+  test "start script creates separate log and release tmp directories" do
+    systemd_service = FlameEC2.Templates.systemd_service(app: :my_app)
+    env = FlameEC2.Templates.env(vars: %{"MY_ENV_1" => "123"})
+
+    output =
+      FlameEC2.Templates.start_script(
+        app: :my_app,
+        systemd_service: systemd_service,
+        env: env,
+        aws_region: "us-east-1",
+        s3_bundle_url: "s3://code-bucket/code.tar.gz",
+        s3_bundle_compressed?: true
+      )
+
+    assert output =~ ~s(LOG_DIR="/home/ubuntu/my_app/log")
+    assert output =~ ~s(RELEASE_TMP_DIR="/home/ubuntu/my_app/tmp")
+    assert output =~ ~s(chmod 0700 "${RELEASE_TMP_DIR}")
+    assert output =~ ~s(if id ubuntu >/dev/null 2>&1; then)
+    assert output =~ ~s(chown ubuntu:ubuntu "${LOG_DIR}")
+    assert output =~ ~s(chmod 2775 "${LOG_DIR}")
+    assert output =~ ~s(leaving ${LOG_DIR} owned by root)
+  end
 end

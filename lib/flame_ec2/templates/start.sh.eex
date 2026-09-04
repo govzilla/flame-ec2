@@ -107,6 +107,33 @@ mkdir -p "${APP_DIR}" "${RELEASE_DIR}" || {
     exit 1
 }
 
+LOG_DIR="/home/ubuntu/<%= @app %>/log"
+RELEASE_TMP_DIR="/home/ubuntu/<%= @app %>/tmp"
+mkdir -p "${LOG_DIR}" "${RELEASE_TMP_DIR}" || {
+    log "Failed to create application runtime directories"
+    exit 1
+}
+chmod 0700 "${RELEASE_TMP_DIR}" || {
+    log "Failed to secure ${RELEASE_TMP_DIR}"
+    exit 1
+}
+if id ubuntu >/dev/null 2>&1; then
+    chown ubuntu:ubuntu "${LOG_DIR}" || {
+        log "Failed to set ownership on ${LOG_DIR}"
+        exit 1
+    }
+    chmod 2775 "${LOG_DIR}" || {
+        log "Failed to set permissions on ${LOG_DIR}"
+        exit 1
+    }
+else
+    chmod 0755 "${LOG_DIR}" || {
+        log "Failed to set permissions on ${LOG_DIR}"
+        exit 1
+    }
+    log "User ubuntu not found, leaving ${LOG_DIR} owned by root"
+fi
+
 cd "${APP_DIR}" || {
     log "Failed to change to ${APP_DIR}"
     exit 1

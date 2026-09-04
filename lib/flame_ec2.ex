@@ -169,6 +169,18 @@ defmodule FlameEC2 do
     \"\"\"
   ```
 
+  ## Application runtime directories
+
+  FlameEC2 creates `/home/ubuntu/{app}/log` for application file loggers and makes
+  files created there readable by the `ubuntu` group when that user exists. This is
+  suitable for a log shipper in that group; FlameEC2 itself does not configure an
+  application logger.
+
+  It also creates a separate, root-only `/home/ubuntu/{app}/tmp` directory and exports
+  it as `RELEASE_TMP`. Elixir release scripts use that directory for generated runtime
+  configuration, not for application logs. A `RELEASE_TMP` value supplied explicitly
+  through `:env` takes precedence over the default.
+
   ## Environment Variables
 
   The FLAME EC2 machines *do not* inherit the environment variables of the parent.
