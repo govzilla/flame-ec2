@@ -146,6 +146,29 @@ defmodule FlameEC2 do
   * `:ec2_service_endpoint` - The URL of the EC2. Defaults to "https://ec2.amazonaws.com/", which is the AWS EC2 endpoint.
   This can be adjusted for local testing, but likely does not need to be adjusted outside of this use case.
 
+  * `:user_data_pre_script` - A shell script that runs at the beginning of the EC2 UserData,
+  before FlameEC2 initialization. Use this to configure system settings, write configuration
+  files (like `/etc/default/*` for monitoring agents), or perform other setup tasks that
+  must complete before the FLAME runner starts. It runs as root under `/bin/sh`, after
+  `set -e` and before FlameEC2 defines its `log` helper or installs the AWS CLI. A failing
+  command aborts runner initialization and is visible in `/var/log/cloud-init-output.log`,
+  not in the `flame_ec2_init` journal. The script counts against EC2's 16 KiB raw UserData
+  limit together with the generated FlameEC2 script.
+
+  Example - configuring telegraf and vector for metrics/logging:
+
+  ```elixir
+  config :flame, FlameEC2,
+    user_data_pre_script: \"\"\"
+    echo "INFLUXDB_URL=http://influxdb.internal:8086" >> /etc/default/telegraf
+    echo "SERVICE_NAME=my_app" >> /etc/default/telegraf
+    echo "SERVICE_ROLE=flame_worker" >> /etc/default/telegraf
+
+    echo "SERVICE_NAME=my_app" >> /etc/default/vector
+    echo "SERVICE_ROLE=flame_worker" >> /etc/default/vector
+    \"\"\"
+  ```
+
   ## Environment Variables
 
   The FLAME EC2 machines *do not* inherit the environment variables of the parent.

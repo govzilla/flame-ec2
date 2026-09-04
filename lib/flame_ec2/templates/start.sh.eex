@@ -2,6 +2,12 @@
 
 set -e
 
+<%= if assigns[:user_data_pre_script] do %>
+# User-provided pre-script
+<%= @user_data_pre_script %>
+# End user-provided pre-script
+<% end %>
+
 log() {
     logger -s -t "flame_ec2_init" "$1"
 }

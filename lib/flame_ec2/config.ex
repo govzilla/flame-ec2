@@ -26,6 +26,7 @@ defmodule FlameEC2.Config do
     :instance_metadata_url,
     :instance_metadata_token_url,
     :ec2_service_endpoint,
+    :user_data_pre_script,
     # We don't use this, but it seems to be passed in automatically as part of the config options.
     # In the FLAME.FlyBackend it's only found in the valid opts list, and isn't found anywhere else in the code.
     :terminator_sup
@@ -69,7 +70,8 @@ defmodule FlameEC2.Config do
             local_ip: nil,
             instance_metadata_url: nil,
             instance_metadata_token_url: nil,
-            ec2_service_endpoint: nil
+            ec2_service_endpoint: nil,
+            user_data_pre_script: nil
 
   def new(opts, config) do
     default = %Config{
@@ -93,6 +95,7 @@ defmodule FlameEC2.Config do
     config
     |> maybe_auto_configure!()
     |> validate_app_name!()
+    |> validate_user_data_pre_script!()
     |> validate_s3_bundle_url!()
     |> validate_local_ip!()
     |> validate_instance_creation_details!()
@@ -157,6 +160,14 @@ defmodule FlameEC2.Config do
 
   defp validate_app_name!(%Config{} = config) do
     config
+  end
+
+  defp validate_user_data_pre_script!(%Config{user_data_pre_script: nil} = config), do: config
+
+  defp validate_user_data_pre_script!(%Config{user_data_pre_script: script} = config) when is_binary(script), do: config
+
+  defp validate_user_data_pre_script!(%Config{}) do
+    raise ArgumentError, "user_data_pre_script must be a string"
   end
 
   defp validate_s3_bundle_url!(%Config{s3_bundle_url: nil}) do
