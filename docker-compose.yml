@@ -14,7 +14,7 @@ services:
     command: ["-c", "/compose-env/ec2_mock_config.json", "-s", "-w"]
 
   localstack:
-    image: localstack/localstack
+    image: localstack/localstack:4.7.0
     restart: always
     ports:
       - "4566:4566"
