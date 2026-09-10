@@ -151,9 +151,10 @@ defmodule FlameEC2 do
   files (like `/etc/default/*` for monitoring agents), or perform other setup tasks that
   must complete before the FLAME runner starts. It runs as root under `/bin/sh`, after
   `set -e` and before FlameEC2 defines its `log` helper or installs the AWS CLI. A failing
-  command aborts runner initialization and is visible in `/var/log/cloud-init-output.log`,
-  not in the `flame_ec2_init` journal. The script counts against EC2's 16 KiB raw UserData
-  limit together with the generated FlameEC2 script.
+  command aborts runner initialization, powers the instance off, and leaves its output in
+  `/var/log/cloud-init-output.log`; the shutdown marker also uses the `flame_ec2_init` journal
+  tag. The script counts against EC2's 16 KiB raw UserData limit together with the generated
+  FlameEC2 script.
 
   Example - configuring telegraf and vector for metrics/logging:
 

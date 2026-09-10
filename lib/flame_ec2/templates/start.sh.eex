@@ -2,6 +2,23 @@
 
 set -e
 
+power_off_after_failed_boot() {
+    status=$?
+    trap - EXIT
+
+    if [ "${status}" -ne 0 ]; then
+        logger -s -t "flame_ec2_init" "Runner initialization failed; powering off the instance" || true
+        systemctl --no-block poweroff >/dev/null 2>&1 || true
+    fi
+
+    exit "${status}"
+}
+
+# The generated service's ExecStopPost powers the instance off after a runner
+# that started successfully. This trap covers failures before the service
+# becomes active, including the optional pre-script and dependency failures.
+trap power_off_after_failed_boot EXIT
+
 <%= if assigns[:user_data_pre_script] do %>
 # User-provided pre-script
 <%= @user_data_pre_script %>
