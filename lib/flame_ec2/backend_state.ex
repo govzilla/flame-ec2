@@ -39,7 +39,11 @@ defmodule FlameEC2.BackendState do
   end
 
   defp build_env(encoded_parent, %Config{} = config) do
-    %{"PHX_SERVER" => "false", "FLAME_PARENT" => encoded_parent}
+    %{
+      "PHX_SERVER" => "false",
+      "FLAME_PARENT" => encoded_parent,
+      "RELEASE_TMP" => "/home/ubuntu/#{config.app}/tmp"
+    }
     |> Map.merge(config.env)
     |> then(fn env ->
       if flags = System.get_env("ERL_AFLAGS") do

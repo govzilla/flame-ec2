@@ -146,6 +146,42 @@ defmodule FlameEC2 do
   * `:ec2_service_endpoint` - The URL of the EC2. Defaults to "https://ec2.amazonaws.com/", which is the AWS EC2 endpoint.
   This can be adjusted for local testing, but likely does not need to be adjusted outside of this use case.
 
+  * `:user_data_pre_script` - A shell script that runs at the beginning of the EC2 UserData,
+  before FlameEC2 initialization. Use this to configure system settings, write configuration
+  files (like `/etc/default/*` for monitoring agents), or perform other setup tasks that
+  must complete before the FLAME runner starts. It runs as root under `/bin/sh`, after
+  `set -e` and before FlameEC2 defines its `log` helper or installs the AWS CLI. A failing
+  command aborts runner initialization, powers the instance off, and leaves its output in
+  `/var/log/cloud-init-output.log`; the shutdown marker also uses the `flame_ec2_init` journal
+  tag. The script counts against EC2's 16 KiB raw UserData limit together with the generated
+  FlameEC2 script.
+
+  Example - configuring telegraf and vector for metrics/logging:
+
+  ```elixir
+  config :flame, FlameEC2,
+    user_data_pre_script: \"\"\"
+    echo "INFLUXDB_URL=http://influxdb.internal:8086" >> /etc/default/telegraf
+    echo "SERVICE_NAME=my_app" >> /etc/default/telegraf
+    echo "SERVICE_ROLE=flame_worker" >> /etc/default/telegraf
+
+    echo "SERVICE_NAME=my_app" >> /etc/default/vector
+    echo "SERVICE_ROLE=flame_worker" >> /etc/default/vector
+    \"\"\"
+  ```
+
+  ## Application runtime directories
+
+  FlameEC2 creates `/home/ubuntu/{app}/log` for application file loggers and makes
+  files created there readable by the `ubuntu` group when that user exists. This is
+  suitable for a log shipper in that group; FlameEC2 itself does not configure an
+  application logger.
+
+  It also creates a separate, root-only `/home/ubuntu/{app}/tmp` directory and exports
+  it as `RELEASE_TMP`. Elixir release scripts use that directory for generated runtime
+  configuration, not for application logs. A `RELEASE_TMP` value supplied explicitly
+  through `:env` takes precedence over the default.
+
   ## Environment Variables
 
   The FLAME EC2 machines *do not* inherit the environment variables of the parent.

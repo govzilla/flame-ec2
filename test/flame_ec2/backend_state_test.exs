@@ -20,6 +20,20 @@ defmodule FlameEC2.BackendStateTest do
     assert String.starts_with?(state.runner_node_base, "flame_ec2-flame-")
     assert is_reference(state.parent_ref)
     assert is_map(state.runner_env)
+    assert state.runner_env["RELEASE_TMP"] == "/home/ubuntu/flame_ec2/tmp"
+  end
+
+  test "a configured release tmp directory overrides the default" do
+    config =
+      Keyword.put(
+        FlameEC2.QuickConfigs.simple_valid_config(),
+        :env,
+        %{"RELEASE_TMP" => "/var/lib/flame/runtime"}
+      )
+
+    state = FlameEC2.BackendState.new(config, [])
+
+    assert state.runner_env["RELEASE_TMP"] == "/var/lib/flame/runtime"
   end
 
   test "runner_node_base is always unique per state" do

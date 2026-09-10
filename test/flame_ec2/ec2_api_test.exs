@@ -78,6 +78,16 @@ defmodule FlameEC2.EC2ApiTest do
     assert not Map.has_key?(parsed, "ImageId")
   end
 
+  test "user data contains the configured pre-script" do
+    config = Keyword.put(FlameEC2.QuickConfigs.simple_valid_config(), :user_data_pre_script, "echo configure-the-runner")
+
+    state = FlameEC2.BackendState.new(config, [])
+    params = FlameEC2.EC2Api.build_params_from_state(state)
+
+    assert {:ok, user_data} = Base.decode64(params["UserData"])
+    assert user_data =~ "echo configure-the-runner"
+  end
+
   test "successfully launches an instance", context do
     state =
       FlameEC2.BackendState.new(

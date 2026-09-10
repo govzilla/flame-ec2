@@ -50,6 +50,34 @@ defmodule FlameEC2.ConfigTest do
     assert config.env == env
   end
 
+  test "user data pre-script can come from pool or application config" do
+    pool_config =
+      FlameEC2.QuickConfigs.simple_valid_config()
+      |> Keyword.put(:user_data_pre_script, "echo from-pool")
+      |> FlameEC2.Config.new([])
+
+    app_config =
+      FlameEC2.Config.new(
+        [],
+        Keyword.put(
+          FlameEC2.QuickConfigs.simple_valid_config(),
+          :user_data_pre_script,
+          "echo from-application"
+        )
+      )
+
+    assert pool_config.user_data_pre_script == "echo from-pool"
+    assert app_config.user_data_pre_script == "echo from-application"
+  end
+
+  test "user data pre-script must be a string" do
+    config = Keyword.put(FlameEC2.QuickConfigs.simple_valid_config(), :user_data_pre_script, [:echo])
+
+    assert_raise ArgumentError, "user_data_pre_script must be a string", fn ->
+      FlameEC2.Config.new(config, [])
+    end
+  end
+
   describe "instance creation details" do
     test "must have image id or launch template" do
       assert_raise ArgumentError,

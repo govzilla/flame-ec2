@@ -2,6 +2,29 @@
 
 set -e
 
+power_off_after_failed_boot() {
+    status=$?
+    trap - EXIT
+
+    if [ "${status}" -ne 0 ]; then
+        logger -s -t "flame_ec2_init" "Runner initialization failed; powering off the instance" || true
+        systemctl --no-block poweroff >/dev/null 2>&1 || true
+    fi
+
+    exit "${status}"
+}
+
+# The generated service's ExecStopPost powers the instance off after a runner
+# that started successfully. This trap covers failures before the service
+# becomes active, including the optional pre-script and dependency failures.
+trap power_off_after_failed_boot EXIT
+
+<%= if assigns[:user_data_pre_script] do %>
+# User-provided pre-script
+<%= @user_data_pre_script %>
+# End user-provided pre-script
+<% end %>
+
 log() {
     logger -s -t "flame_ec2_init" "$1"
 }
@@ -100,6 +123,33 @@ mkdir -p "${APP_DIR}" "${RELEASE_DIR}" || {
     log "Failed to create required directories"
     exit 1
 }
+
+LOG_DIR="/home/ubuntu/<%= @app %>/log"
+RELEASE_TMP_DIR="/home/ubuntu/<%= @app %>/tmp"
+mkdir -p "${LOG_DIR}" "${RELEASE_TMP_DIR}" || {
+    log "Failed to create application runtime directories"
+    exit 1
+}
+chmod 0700 "${RELEASE_TMP_DIR}" || {
+    log "Failed to secure ${RELEASE_TMP_DIR}"
+    exit 1
+}
+if id ubuntu >/dev/null 2>&1; then
+    chown ubuntu:ubuntu "${LOG_DIR}" || {
+        log "Failed to set ownership on ${LOG_DIR}"
+        exit 1
+    }
+    chmod 2775 "${LOG_DIR}" || {
+        log "Failed to set permissions on ${LOG_DIR}"
+        exit 1
+    }
+else
+    chmod 0755 "${LOG_DIR}" || {
+        log "Failed to set permissions on ${LOG_DIR}"
+        exit 1
+    }
+    log "User ubuntu not found, leaving ${LOG_DIR} owned by root"
+fi
 
 cd "${APP_DIR}" || {
     log "Failed to change to ${APP_DIR}"
