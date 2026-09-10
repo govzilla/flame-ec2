@@ -92,7 +92,7 @@ defmodule FlameEC2.EC2Api do
       "KeyName" => config.key_name,
       "NetworkInterface" => [
         %{
-          "AssociatePublicIpAddress" => false,
+          "AssociatePublicIpAddress" => config.associate_public_ip_address,
           "DeleteOnTermination" => true,
           "DeviceIndex" => 0,
           "SubnetId" => config.subnet_id,

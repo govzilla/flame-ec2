@@ -8,6 +8,7 @@ This changelog follows the same style that I have seen LiveView, Phoenix, and El
 
 - Add `user_data_pre_script` for setup that must run before FlameEC2 initialization.
 - Create per-app log and private release-runtime directories on runner instances.
+- Allow a runner network interface to opt in to a public IPv4 address.
 
 ## 1.0.0
 

@@ -127,6 +127,10 @@ defmodule FlameEC2 do
   * `:instance_type` - The instance type that should be used. Defaults to "t3.nano", which falls under the AWS free tier,
   however, you likely want to change this to something that's more appropriate for your pool's workload.
 
+  * `:associate_public_ip_address` - Whether the runner's network interface should receive a public IPv4 address.
+  Defaults to `false`. Enable this only when the selected subnet reaches the internet through an internet gateway
+  and the runner needs direct internet access; private subnets with NAT should keep the default.
+
   * `:iam_instance_profile` - The ARN of the instance profile to assign to this machine.
   You must ensure that this instance profile is set to a profile which can access whatever your FLAME nodes will need.
   When auto-configured, it will be set to the current machine's instance profile, however, in some cases this profile may
