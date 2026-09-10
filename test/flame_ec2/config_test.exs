@@ -23,6 +23,29 @@ defmodule FlameEC2.ConfigTest do
     assert config.instance_type == "t3.nano"
     assert config.launch_template_version == "$Default"
     assert config.boot_timeout == 120_000
+    refute config.associate_public_ip_address
+  end
+
+  test "public IP address association can be enabled" do
+    config =
+      FlameEC2.QuickConfigs.simple_valid_config()
+      |> Keyword.put(:associate_public_ip_address, true)
+      |> FlameEC2.Config.new([])
+
+    assert config.associate_public_ip_address
+  end
+
+  test "public IP address association must be a boolean" do
+    config =
+      Keyword.put(
+        FlameEC2.QuickConfigs.simple_valid_config(),
+        :associate_public_ip_address,
+        "true"
+      )
+
+    assert_raise ArgumentError, "associate_public_ip_address must be a boolean", fn ->
+      FlameEC2.Config.new(config, [])
+    end
   end
 
   test "s3 bundle compressed?" do

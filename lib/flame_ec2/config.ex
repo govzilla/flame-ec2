@@ -15,6 +15,7 @@ defmodule FlameEC2.Config do
     :launch_template_version,
     :subnet_id,
     :security_group_id,
+    :associate_public_ip_address,
     :instance_type,
     :iam_instance_profile,
     :key_name,
@@ -40,6 +41,7 @@ defmodule FlameEC2.Config do
              :launch_template_version,
              :subnet_id,
              :security_group_id,
+             :associate_public_ip_address,
              :instance_type,
              :iam_instance_profile,
              :key_name,
@@ -58,6 +60,7 @@ defmodule FlameEC2.Config do
             launch_template_version: nil,
             subnet_id: nil,
             security_group_id: nil,
+            associate_public_ip_address: nil,
             instance_type: nil,
             iam_instance_profile: nil,
             key_name: nil,
@@ -78,6 +81,7 @@ defmodule FlameEC2.Config do
       auto_configure: false,
       log: Keyword.get(config, :log, false),
       launch_template_version: "$Default",
+      associate_public_ip_address: false,
       boot_timeout: 120_000,
       app: System.get_env("RELEASE_NAME"),
       instance_metadata_url: "http://169.254.169.254/latest/meta-data/",
@@ -95,6 +99,7 @@ defmodule FlameEC2.Config do
     config
     |> maybe_auto_configure!()
     |> validate_app_name!()
+    |> validate_associate_public_ip_address!()
     |> validate_user_data_pre_script!()
     |> validate_s3_bundle_url!()
     |> validate_local_ip!()
@@ -160,6 +165,15 @@ defmodule FlameEC2.Config do
 
   defp validate_app_name!(%Config{} = config) do
     config
+  end
+
+  defp validate_associate_public_ip_address!(%Config{associate_public_ip_address: associate_public_ip_address} = config)
+       when is_boolean(associate_public_ip_address) do
+    config
+  end
+
+  defp validate_associate_public_ip_address!(%Config{}) do
+    raise ArgumentError, "associate_public_ip_address must be a boolean"
   end
 
   defp validate_user_data_pre_script!(%Config{user_data_pre_script: nil} = config), do: config

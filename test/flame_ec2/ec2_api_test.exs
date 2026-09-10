@@ -78,6 +78,15 @@ defmodule FlameEC2.EC2ApiTest do
     assert not Map.has_key?(parsed, "ImageId")
   end
 
+  test "associates a public IP address when configured" do
+    config = Keyword.put(FlameEC2.QuickConfigs.simple_valid_config(), :associate_public_ip_address, true)
+
+    state = FlameEC2.BackendState.new(config, [])
+    parsed = FlameEC2.EC2Api.build_params_from_state(state)
+
+    assert parsed["NetworkInterface.1.AssociatePublicIpAddress"] == true
+  end
+
   test "user data contains the configured pre-script" do
     config = Keyword.put(FlameEC2.QuickConfigs.simple_valid_config(), :user_data_pre_script, "echo configure-the-runner")
 
